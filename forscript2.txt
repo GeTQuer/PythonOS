@@ -1,0 +1,4 @@
+cd Hello
+cd Янки
+ls #231
+exit
