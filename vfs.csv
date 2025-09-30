@@ -1,0 +1,6 @@
+path,type,encoding,content
+/,dir,,
+/home,dir,,
+/home/user,dir,,
+/home/user/file1.txt,file,text,Hello
+/home/user/file2.bin,file,base64,SGVsbG8gV29ybGQ=
