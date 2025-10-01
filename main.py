@@ -14,20 +14,13 @@ def main():
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
-    vfs_path = "vfs_data"
-    if args.vfs_path:
-        # Если путь относительный - делаем абсолютным относительно директории скрипта
-        if not os.path.isabs(args.vfs_path):
-            vfs_path = os.path.join(script_dir, args.vfs_path)
-        else:
-            vfs_path = args.vfs_pat
     startup_script = None
     if args.startup_script:
         if not os.path.isabs(args.startup_script):
             startup_script = os.path.join(script_dir, args.startup_script)
         else:
             startup_script = args.startup_script
-
+    vfs_path = os.path.join(os.path.dirname(startup_script),"main.py")
     print("=== VFS Terminal Startup Parameters ===")
     print(f"Script Directory: {script_dir}")
     print(f"VFS Path: {vfs_path}")
