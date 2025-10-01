@@ -1,0 +1,18 @@
+type,path,content
+/home/user,dir,,
+/home/user/documents,dir,,
+/home/user/downloads,dir,,
+/etc,dir,,
+/etc/config,dir,,
+/var,dir,,
+/var/log,dir,,
+/home/user/documents/readme.txt,file,text,
+/home/user/documents/notes.txt,file,text
+- Задача 1
+- Задача 2
+- Задача 3"
+/home/user/documents/data.bin,file,base64
+/home/user/documents/image.png,file
+/etc/config/settings.conf,file,text
+
+/home/user/encoded_data.dat,file,base64

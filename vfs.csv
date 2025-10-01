@@ -1,0 +1,8 @@
+type,path,content,size,encoding
+dir,/home,,,755,
+dir,/home/user,,,755,
+dir,/home/user/documents,,,755,
+dir,/home/user/pictures,,,755,
+file,/home/user/file1.txt,Hello World,11,644,
+file,/home/user/readme.txt,Readme content,13,644,
+file,/home/user/documents/doc1.txt,Document 1,10,644,
