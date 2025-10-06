@@ -3,15 +3,13 @@ from tkinter import scrolledtext, Entry, Frame, Label
 import shlex
 import os
 import argparse
-import time
 import csv
 import base64
+import time
 
-# --------------------------
-# Простая VFS (словарь)
-# --------------------------
-VFS = {"/": {}}        # дерево каталогов/файлов
-CURRENT_DIR = ["/"]    # список частей пути (корень = ["/"])
+VFS = {"/": {}}
+CURRENT_DIR = ["/"]
+
 
 def norm_path(path):
     if not path:
@@ -32,8 +30,8 @@ def norm_path(path):
             parts.append(p)
     return parts
 
+
 def get_node(parts):
-    """Возвращает узел по списку частей пути"""
     node = VFS["/"]
     for p in parts[1:]:
         if not isinstance(node, dict):
@@ -44,6 +42,7 @@ def get_node(parts):
         if isinstance(node, dict) and "type" in node and node["type"] == "file":
             return None
     return node
+
 
 def load_vfs(csv_path):
     if not os.path.exists(csv_path):
@@ -60,7 +59,6 @@ def load_vfs(csv_path):
             fname = parts[-1]
             parent = get_node(parts[:-1])
             if parent is None:
-                # создаём промежуточные каталоги
                 parent = VFS["/"]
                 for p in parts[1:-1]:
                     parent = parent.setdefault(p, {})
@@ -74,12 +72,52 @@ def load_vfs(csv_path):
                     data = cont
                 parent[fname] = {"type": "file", "encoding": enc, "content": data}
 
+
+def save_vfs(csv_path=None):
+    if csv_path is None:
+        csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vfs_saved.csv")
+
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=["path", "type", "encoding", "content"])
+        writer.writeheader()
+
+        def walk(node, prefix):
+            for name, child in node.items():
+                full_path = os.path.join(prefix, name) if prefix != "/" else f"/{name}"
+                if isinstance(child, dict) and "type" in child and child["type"] == "file":
+                    cont = child["content"]
+                    enc = child["encoding"]
+                    if isinstance(cont, bytes):
+                        cont = base64.b64encode(cont).decode("ascii")
+                        enc = "base64"
+                    writer.writerow({
+                        "path": full_path,
+                        "type": "file",
+                        "encoding": enc,
+                        "content": cont
+                    })
+                elif isinstance(child, dict):
+                    writer.writerow({
+                        "path": full_path,
+                        "type": "dir",
+                        "encoding": "",
+                        "content": ""
+                    })
+                    walk(child, full_path)
+
+        walk(VFS["/"], "/")
+
+    return f"VFS сохранена в '{csv_path}'"
+
+
+
 def ls(path=None):
     parts = norm_path(path) if path else CURRENT_DIR
     node = get_node(parts)
     if node is None or not isinstance(node, dict):
         return ["Ошибка: не директория"]
     return list(node.keys())
+
 
 def cd(path):
     global CURRENT_DIR
@@ -88,17 +126,15 @@ def cd(path):
     if node is None or not isinstance(node, dict):
         return f"Ошибка: нет такой директории '{path}'"
     CURRENT_DIR = parts
-    return f"Текущая директория: {'/'.join(CURRENT_DIR) if CURRENT_DIR != ['/'] else '/'}"
+    return f"Текущая директория: {'/' if CURRENT_DIR == ['/'] else '/' + '/'.join(CURRENT_DIR[1:])}"
 
-# --------------------------
-# GUI часть (твоя)
-# --------------------------
+
 def main():
-    parser = argparse.ArgumentParser(description='VFS Terminal Emulator')
-    parser.add_argument('--vfs-csv', required=True, help="Путь к CSV файлу с виртуальной ФС")
+    parser = argparse.ArgumentParser(description="VFS Terminal Emulator")
+    parser.add_argument("--vfs-csv", required=True, help="Путь к CSV файлу с виртуальной ФС")
+    parser.add_argument("--startup-script", help="Путь к файлу со стартовыми командами", default=None)
     args = parser.parse_args()
 
-    # загружаем VFS
     try:
         load_vfs(args.vfs_csv)
     except Exception as e:
@@ -114,31 +150,31 @@ def main():
     output_area = scrolledtext.ScrolledText(
         main_frame,
         wrap=tk.WORD,
-        bg='black',
-        fg='green',
-        insertbackground='white',
-        font=('Courier New', 10)
+        bg="black",
+        fg="green",
+        insertbackground="white",
+        font=("Courier New", 10)
     )
     output_area.pack(fill=tk.BOTH, expand=True)
     output_area.config(state=tk.DISABLED)
 
-    input_frame = Frame(main_frame, bg='black')
+    input_frame = Frame(main_frame, bg="black")
     input_frame.pack(fill=tk.X, pady=(5, 0))
 
     prompt_label = Label(
         input_frame,
         text="user@vfs:/ $ ",
-        bg='black',
-        fg='green',
-        font=('Courier New', 10)
+        bg="black",
+        fg="green",
+        font=("Courier New", 10)
     )
     prompt_label.pack(side=tk.LEFT)
     entry = Entry(
         input_frame,
-        bg='black',
-        fg='white',
-        insertbackground='white',
-        font=('Courier New', 10),
+        bg="black",
+        fg="white",
+        insertbackground="white",
+        font=("Courier New", 10),
         width=50
     )
     entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
@@ -146,12 +182,13 @@ def main():
 
     def output(text):
         output_area.config(state=tk.NORMAL)
-        output_area.insert(tk.END, text + '\n')
+        output_area.insert(tk.END, text + "\n")
         output_area.config(state=tk.DISABLED)
         output_area.see(tk.END)
 
     def show_prompt():
-        cwd_str = "/" if CURRENT_DIR == ["/"] else "/".join(CURRENT_DIR)
+        cwd_str = "/" if CURRENT_DIR == ["/"] else "/" + "/".join(CURRENT_DIR[1:])
+
         prompt_label.config(text=f"user@vfs:{cwd_str}$ ")
 
     def exit_command():
@@ -174,6 +211,14 @@ def main():
         output_area.delete(1.0, tk.END)
         output_area.config(state=tk.DISABLED)
 
+    def save_command(args):
+        try:
+            save_path = args[0] if args else None
+            result = save_vfs(save_path)
+            output(result)
+        except Exception as e:
+            output(f"Ошибка сохранения: {e}")
+
     def parse_command(command_text):
         try:
             parts = shlex.split(command_text)
@@ -191,7 +236,7 @@ def main():
         cwd_str = "/" if CURRENT_DIR == ["/"] else "/".join(CURRENT_DIR)
         output(f"user@vfs:{cwd_str}$ {command_text}")
 
-        if not command_text or command_text.startswith('#'):
+        if not command_text or command_text.startswith("#"):
             show_prompt()
             return
 
@@ -202,6 +247,7 @@ def main():
             "ls": lambda: ls_command(args),
             "cd": lambda: cd_command(args),
             "clear": clear_command,
+            "vfs-save": lambda: save_command(args),
         }
 
         if command in handlers:
@@ -211,14 +257,40 @@ def main():
 
         show_prompt()
 
-    entry.bind('<Return>', process_command)
+    entry.bind("<Return>", process_command)
 
     output("Добро пожаловать в VFS Terminal Emulator")
     output("Введите 'exit' для выхода")
-    output("Доступные команды: ls, cd, clear")
+    output("Доступные команды: ls, cd, clear, vfs-save")
     show_prompt()
 
+    def execute_startup_script(script_path):
+        try:
+            if not os.path.exists(script_path):
+                output(f"Ошибка: файл скрипта '{script_path}' не найден")
+                return
+
+            with open(script_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+
+            output(f"=== Выполнение стартового скрипта: {script_path} ===")
+
+            for line_num, line in enumerate(lines, 1):
+                line = line.strip()
+                process_command(command_text=line)
+                root.update()
+                time.sleep(0.5)
+
+            output("=== Выполнение скрипта завершено ===")
+
+        except Exception as e:
+            output(f"Ошибка выполнения скрипта: {str(e)}")
+
+    if args.startup_script:
+        root.after(500, lambda: execute_startup_script(args.startup_script))
+
     root.mainloop()
+
 
 if __name__ == "__main__":
     main()

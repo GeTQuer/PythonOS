@@ -1,0 +1,5 @@
+ls
+cd /home/user/docs/projects/code/assets
+ls
+clear
+cd /home/user/docs/projects/code/assets

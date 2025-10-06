@@ -1,6 +1,16 @@
 path,type,encoding,content
 /,dir,,
-/home,dir,,
-/home/user,dir,,
-/home/user/file1.txt,file,text,Hello
-/home/user/file2.bin,file,base64,SGVsbG8gV29ybGQ=
+"/home",dir,,
+"/home/user",dir,,
+"/home/user/docs",dir,,
+"/home/user/docs/readme.txt",file,utf-8,"Добро пожаловать в виртуальную ФС!"
+"/home/user/docs/projects",dir,,
+"/home/user/docs/projects/plan.txt",file,utf-8,"Проект: улучшение эмулятора VFS"
+"/home/user/docs/projects/code",dir,,
+"/home/user/docs/projects/code/main.py",file,utf-8,"print('Hello from VFS!')"
+"/home/user/docs/projects/code/assets",dir,,
+"/home/user/docs/projects/code/assets/logo.bin",file,base64,aGVsbG8gZnJvbSBiYXNlNjQ=
+"/etc",dir,,
+"/etc/config.ini",file,utf-8,"[settings]\nversion=1.0\nauthor=Maxim"
+"/tmp",dir,,
+"/tmp/data.bin",file,base64,QUJDREVGR0g=
