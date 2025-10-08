@@ -1,4 +1,5 @@
 ls
 cd documents
+cd user
 ls
 cd ..

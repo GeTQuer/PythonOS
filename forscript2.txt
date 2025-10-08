@@ -1,4 +1,4 @@
 cd Hello
-cd Янки
-ls #231
+cd Янки#d
+ls #2345
 exit

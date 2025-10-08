@@ -44,7 +44,6 @@ def get_node(parts):
             return None
     return node
 
-
 def load_vfs(csv_path):
     if not os.path.exists(csv_path):
         raise FileNotFoundError(f"VFS CSV файл '{csv_path}' не найден")
@@ -74,8 +73,6 @@ def load_vfs(csv_path):
                 else:
                     data = cont
                 parent[fname] = {"type": "file", "encoding": enc, "content": data}
-
-
 def ls(path=None):
     parts = norm_path(path) if path else CURRENT_DIR
     node = get_node(parts)
@@ -91,7 +88,7 @@ def cd(path):
     if node is None or not isinstance(node, dict):
         return f"Ошибка: нет такой директории '{path}'"
     CURRENT_DIR = parts
-    return f"Текущая директория: {'/'.join(CURRENT_DIR) if CURRENT_DIR != ['/'] else '/'}"
+    return f"Текущая директория: {'/'.join(CURRENT_DIR[1:]) if CURRENT_DIR != ['/'] else '/'}"
 
 
 def main():
@@ -156,11 +153,11 @@ def main():
         csv_path = args[0]
 
         try:
-            import csv
+            current_dir_path = "/" + "/".join(CURRENT_DIR[1:]) if CURRENT_DIR != ["/"] else "/"
 
             vfs_data = [
-                # type, path, content, size,
-                ['file', '/home/user/documents/mypath']
+                ['file', '/home/user/documents/mypath', 'example content', '15', '644'],
+                ['current_dir', current_dir_path, '', '', '']
             ]
 
             with open(csv_path, 'w', encoding='utf-8', newline='') as f:
@@ -169,10 +166,10 @@ def main():
                 writer.writerows(vfs_data)
 
             output(f"VFS успешно сохранена в: {csv_path}")
+            output(f"Текущая директория сохранена: {current_dir_path}")
 
         except Exception as e:
             output(f"Ошибка сохранения VFS: {str(e)}")
-
     def output(text):
         output_area.config(state=tk.NORMAL)
         output_area.insert(tk.END, text + '\n')
@@ -180,7 +177,7 @@ def main():
         output_area.see(tk.END)
 
     def show_prompt():
-        cwd_str = "/" if CURRENT_DIR == ["/"] else "/".join(CURRENT_DIR)
+        cwd_str = "/" if CURRENT_DIR == ["/"] else "/".join(CURRENT_DIR)[1:]
         prompt_label.config(text=f"user@vfs:{cwd_str}$ ")
 
     def exit_command():
@@ -197,12 +194,10 @@ def main():
             return
         res = cd(args[0])
         output(res)
-
     def clear_command():
         output_area.config(state=tk.NORMAL)
         output_area.delete(1.0, tk.END)
         output_area.config(state=tk.DISABLED)
-
     def parse_command(command_text):
         try:
             command_text = command_text.split("#")[0].strip()
@@ -225,7 +220,7 @@ def main():
         if command_text is None:
             return
 
-        cwd_str = "/" if CURRENT_DIR == ["/"] else "/".join(CURRENT_DIR)
+        cwd_str = "/" if CURRENT_DIR == ["/"] else "/".join(CURRENT_DIR)[1:]
         output(f"user@vfs:{cwd_str}$ {command_text}")
 
         if not command_text or command_text.startswith('#'):
@@ -263,8 +258,7 @@ def main():
             output(f"=== Выполнение стартового скрипта: {script_path} ===")
             for line_num, line in enumerate(lines, 1):
                 line = line.strip()
-                if not line or line.startswith("#"):
-                    continue
+
                 process_command(command_text=line)
                 root.update()
                 time.sleep(0.5)
