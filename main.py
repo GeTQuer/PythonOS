@@ -5,7 +5,7 @@ import os
 import argparse
 import time
 
-
+# дарова
 def main():
     parser = argparse.ArgumentParser(description='VFS Terminal Emulator')
     parser.add_argument('--vfs-path')
